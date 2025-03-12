@@ -4,41 +4,50 @@ import { Button } from "../ui/button";
 import {
   Heart,
   ShoppingBag,
-  User,
   Info,
   Tablet,
   Box,
   LogIn,
   LogOut,
-} from "lucide-react"; // Import icons
-import { useState } from "react"; // Import useState to manage menu state
+  User,
+  Home,
+} from "lucide-react";
+import { useState } from "react";
 import Image from "next/image";
 import logo from "../../assets/images (1).png";
+import { logout } from "@/services/AuthService";
+import { protectedRoutes } from "@/constants";
+import { usePathname, useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State to toggle the mobile menu
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, setIsLoading } = useUser();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen); // Toggle the state when the hamburger icon is clicked
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsLoading(true);
+    if (protectedRoutes.some((route) => pathname.match(route))) {
+      router.push("/");
+    }
   };
 
   return (
     <header className="border-b w-full">
       <div className="container flex justify-between items-center mx-auto h-16 px-3">
-        <Image
-          //   src="https://ibb.co.com/TxyLy49h"
-          src={logo}
-          alt="MediMart Logo"
-          height={50}
-          width={50}
-        />
-        {/* <h1 className="text-2xl font-black flex items-center">MediMart</h1> */}
+        <Image src={logo} alt="MediMart Logo" height={50} width={50} />
 
-        {/* Mobile Hamburger Icon - Shown only on small screens */}
-        
-
-        {/* Desktop Links - Hidden on small screens */}
         <div className="hidden md:flex gap-6 order-1">
+          <Link href="/" className="flex items-center gap-2 hover:underline">
+            <Home className="w-5 h-5" /> Home
+          </Link>
           <Link
             href="/about"
             className="flex items-center gap-2 hover:underline"
@@ -52,35 +61,39 @@ export default function Navbar() {
             <Tablet className="w-5 h-5" /> Medicine
           </Link>
           <Link
-            href="/dashboard"
+            href={
+              user?.role === "admin" ? "/admin/dashboard" : "/user/dashboard"
+            }
             className="flex items-center gap-2 hover:underline"
           >
             <Box className="w-5 h-5" /> Dashboard
           </Link>
-          <Link
-            href="/login"
-            className="flex items-center gap-2 hover:underline"
-          >
-            <LogIn className="w-5 h-5" /> Login
-          </Link>
-          <Link
-            href="/logout"
-            className="flex items-center gap-2 hover:underline"
-          >
-            <LogOut className="w-5 h-5" /> Logout
-          </Link>
+          {user ? (
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 hover:underline"
+            >
+              <LogOut className="w-5 h-5" /> Logout
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="flex items-center gap-2 hover:underline"
+            >
+              <LogIn className="w-5 h-5" /> Login
+            </Link>
+          )}
         </div>
 
-        {/* Navbar Icons (User, ShoppingBag, Heart) */}
-        <nav className=" flex gap-2 order-3">
-        <div
-          className="md:hidden flex items-center order-2"
-          onClick={toggleMobileMenu}
-        >
-          <Button variant="outline" className="rounded-full p-2">
-            <span className="text-xl">☰</span> {/* Hamburger icon */}
-          </Button>
-        </div>
+        <nav className="flex gap-2 order-3">
+          <div
+            className="md:hidden flex items-center order-2"
+            onClick={toggleMobileMenu}
+          >
+            <Button variant="outline" className="rounded-full p-2">
+              <span className="text-xl">☰</span>
+            </Button>
+          </div>
           <Button variant="outline" className="rounded-full p-2 size-10">
             <Heart />
           </Button>
@@ -88,17 +101,29 @@ export default function Navbar() {
             <ShoppingBag />
           </Button>
           <Button variant="outline" className="rounded-full p-2 size-10">
-            <User />
+            {user ? (
+              <Avatar>
+                <AvatarImage
+                  src="https://github.com/shadcn.png"
+                  alt="@shadcn"
+                />
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+            ) : (
+              <User className="w-5 h-5" />
+            )}
           </Button>
         </nav>
       </div>
 
-      {/* Mobile Links (Hidden by default, visible when hamburger menu is toggled) */}
       <div
         className={`md:hidden ${
           isMobileMenuOpen ? "flex" : "hidden"
         } flex-col items-center gap-4 mt-4`}
       >
+        <Link href="/" className="flex items-center gap-2 hover:underline">
+          <Home className="w-5 h-5" /> Home
+        </Link>
         <Link href="/about" className="flex items-center gap-2 hover:underline">
           <Info className="w-5 h-5" /> About
         </Link>
@@ -109,20 +134,26 @@ export default function Navbar() {
           <Tablet className="w-5 h-5" /> Medicine
         </Link>
         <Link
-          href="/dashboard"
+          href={user?.role === "admin" ? "/admin/dashboard" : "/user/dashboard"}
           className="flex items-center gap-2 hover:underline"
         >
           <Box className="w-5 h-5" /> Dashboard
         </Link>
-        <Link href="/login" className="flex items-center gap-2 hover:underline">
-          <LogIn className="w-5 h-5" /> Login
-        </Link>
-        <Link
-          href="/logout"
-          className="flex items-center gap-2 hover:underline"
-        >
-          <LogOut className="w-5 h-5" /> Logout
-        </Link>
+        {user ? (
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 hover:underline"
+          >
+            <LogOut className="w-5 h-5" /> Logout
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="flex items-center gap-2 hover:underline"
+          >
+            <LogIn className="w-5 h-5" /> Login
+          </Link>
+        )}
       </div>
     </header>
   );

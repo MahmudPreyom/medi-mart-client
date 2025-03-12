@@ -17,6 +17,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { registerUser } from "@/services/AuthService";
 import { toast } from "sonner";
 import { registrationSchema } from "./registerValidation";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 
 export default function RegisterForm() {
   const form = useForm({
@@ -27,6 +29,11 @@ export default function RegisterForm() {
     formState: { isSubmitting },
   } = form;
 
+  // const searchParams = useSearchParams();
+  // const redirect = searchParams.get("redirectPath");
+  const router = useRouter();
+  const { setIsLoading } = useUser();
+
   const password = form.watch("password");
   const passwordConfirm = form.watch("passwordConfirm");
   //   console.log(password, passwordConfirm);
@@ -34,15 +41,30 @@ export default function RegisterForm() {
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     try {
       const res = await registerUser(data);
+      setIsLoading(true);
       if (res?.success) {
         toast.success(res?.message);
+        router.push("/");
       } else {
         toast.error(res?.message);
       }
     } catch (err: any) {
-      toast.error(err?.message);
+      console.error(err);
     }
   };
+  // const onSubmit: SubmitHandler<FieldValues> = async (data) => {
+  //   try {
+  //     const res = await registerUser(data);
+  //     setIsLoading(true);
+  //     if (res?.success) {
+  //       toast.success(res?.message);
+  //     } else {
+  //       toast.error(res?.message);
+  //     }
+  //   } catch (err: any) {
+  //     toast.error(err?.message);
+  //   }
+  // };
 
   return (
     <div className="border-2 border-gray-300 rounded-xl flex-grow max-w-md w-full p-5">
