@@ -5,12 +5,12 @@ import {
   Heart,
   ShoppingBag,
   Info,
-  Tablet,
   Box,
   LogIn,
   LogOut,
   User,
   Home,
+  ShoppingBagIcon,
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
@@ -55,10 +55,10 @@ export default function Navbar() {
             <Info className="w-5 h-5" /> About
           </Link>
           <Link
-            href="/medicine"
+            href="/shop"
             className="flex items-center gap-2 hover:underline"
           >
-            <Tablet className="w-5 h-5" /> Medicine
+            <ShoppingBagIcon className="w-5 h-5" /> Shop
           </Link>
           <Link
             href={
@@ -127,11 +127,8 @@ export default function Navbar() {
         <Link href="/about" className="flex items-center gap-2 hover:underline">
           <Info className="w-5 h-5" /> About
         </Link>
-        <Link
-          href="/medicine"
-          className="flex items-center gap-2 hover:underline"
-        >
-          <Tablet className="w-5 h-5" /> Medicine
+        <Link href="/shop" className="flex items-center gap-2 hover:underline">
+          <ShoppingBag className="w-5 h-5" /> Shop
         </Link>
         <Link
           href={user?.role === "admin" ? "/admin/dashboard" : "/user/dashboard"}

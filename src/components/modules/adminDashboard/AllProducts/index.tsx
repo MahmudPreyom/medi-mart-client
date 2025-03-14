@@ -6,15 +6,13 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { ShoppingCart } from "lucide-react";
+import { Trash2, UploadIcon } from "lucide-react";
 import { toast } from "sonner";
-import { getAllMedicine } from "@/services/medicine";
 import Link from "next/link";
+import { getAllMedicine, deleteMedicine } from "@/services/medicine";
 
-const AllMedicinePage = () => {
+const AllProducts = () => {
   const [medicines, setMedicines] = useState<any[]>([]);
-  // console.log(medicines);
-
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,7 +20,7 @@ const AllMedicinePage = () => {
     const fetchMedicines = async () => {
       try {
         const data = await getAllMedicine();
-        setMedicines(data);
+        setMedicines(data?.data || []);
         toast.success("Medicines loaded successfully!");
       } catch (err: any) {
         setError("Failed to load medicines");
@@ -35,14 +33,27 @@ const AllMedicinePage = () => {
     fetchMedicines();
   }, []);
 
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this medicine?");
+    if (!confirmDelete) return;
+
+    try {
+      await deleteMedicine(id);
+      setMedicines((prev) => prev.filter((medicine) => medicine._id !== id));
+      toast.success("Medicine deleted successfully!");
+    } catch (error: any) {
+      toast.error("Failed to delete medicine.");
+    }
+  };
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      {(medicines as any)?.data?.map((medicine: any, index: number) => (
+      {(medicines as any)?.map((medicine: any, index: number) => (
         <Card
-          key={medicine.id | index}
+          key={medicine._id || index}
           className="w-full max-w-sm border rounded-xl shadow-lg"
         >
           <CardContent className="p-4 flex flex-col items-center">
@@ -55,10 +66,6 @@ const AllMedicinePage = () => {
             />
             <h2 className="text-lg font-semibold mt-2">{medicine.name}</h2>
             <p className="text-sm text-gray-500">Company: {medicine.company}</p>
-            {/* <p className="text-sm text-gray-500">
-              Manufacturer: {medicine.manufacturerDetails}
-            </p> */}
-            {/* <p className="text-sm text-gray-500">{medicine.expiryDate}</p> */}
             <p className="text-sm text-gray-500">
               Expiry Date:{" "}
               {new Date(medicine.expiryDate).toLocaleDateString("en-US", {
@@ -67,7 +74,6 @@ const AllMedicinePage = () => {
                 day: "numeric",
               })}
             </p>
-            {/* <p className="text-sm text-blue-400">{medicine.description}</p> */}
             <p className="text-lg font-bold text-blue-600">${medicine.price}</p>
             <Badge
               className={`mt-2 ${
@@ -86,9 +92,17 @@ const AllMedicinePage = () => {
             <Link href={`/shop/${medicine._id}`}>
               <Button variant="outline">Details</Button>
             </Link>
-            <Button variant="default" disabled={!medicine.inStock}>
-              <ShoppingCart className="w-4 h-4 mr-2" /> Add to cart
+
+            <Button variant="outline" onClick={() => handleDelete(medicine._id)}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete
             </Button>
+
+            <Link href={`/admin/medicine/all-products/${medicine._id}`}>
+              <Button variant="default">
+                <UploadIcon className="w-4 h-4 mr-2" /> Update
+              </Button>
+            </Link>
           </CardFooter>
         </Card>
       ))}
@@ -96,4 +110,4 @@ const AllMedicinePage = () => {
   );
 };
 
-export default AllMedicinePage;
+export default AllProducts;
